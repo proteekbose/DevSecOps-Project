@@ -1,47 +1,85 @@
-name: Build code, run unit tests, run SAST, SCA, DAST security scans
-on: push
+name: Security Scan
+
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  build:
+  sast:
     runs-on: ubuntu-latest
-    name: Run unit tests and SAST scan on the source code 
+    name: Security scan on the source code
+
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
     - name: Set up JDK 17
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v1
       with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
-    - name: Build with Maven cloud
+        java-version: 17
+
+    - name: Build with Maven
+      run: mvn clean install -DskipTests
+      working-directory: ./code/SoloSavingsApp
+
+    - name: Analyze with SonarCloud
       run:  mvn -B verify sonar:sonar -Dsonar.projectKey=javaprojectreachabilitysq -Dsonar.organization=javaprojectreachabilitysq -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  security:
+
+  dast:
     runs-on: ubuntu-latest
-    needs: build
-    name: Run the SCA scan on the source code
+
     steps:
-      - uses: actions/checkout@master
-      - name: RunSnyk to check for vulnerabilities
-        uses: snyk/actions/maven@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-  zap_scan:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v1
+      with:
+        java-version: 17
+
+    - name: Build with Maven
+      run: mvn clean install -DskipTests
+      working-directory: ./code/SoloSavingsApp
+
+    - name: Start Tomcat container
+      run: docker run -d -p 8080:8080 --name tomcat tomcat:8.5
+      working-directory: ./code/SoloSavingsApp
+
+    - name: Copy WAR file to container
+      run: docker cp target/*.war tomcat:/usr/local/tomcat/webapps
+      working-directory: ./code/SoloSavingsApp
+
+    - name: Wait for app to start
+      run: |
+        while ! curl -s http://localhost:8080; do
+          sleep 1
+        done
+
+    - name: Run OWASP ZAP DAST
+      uses: zaproxy/action-baseline@v0.10.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
+        target: 'https://solosavings.wanl.blue/'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a'
+
+  snyk_scan:
     runs-on: ubuntu-latest
-    needs: security
-    name: Run DAST scan on the web application
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: master
-      - name: ZAP Scan
-        uses: zaproxy/action-baseline@v0.6.1
-        with:
-          docker_name: 'owasp/zap2docker-stable'
-          target: 'http://testphp.vulnweb.com/'
-          rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-a'
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Snyk CLI
+      run: npm install -g snyk
+
+    - name: Authenticate Snyk
+      run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+    - name: Run Snyk Test
+      run: snyk test
