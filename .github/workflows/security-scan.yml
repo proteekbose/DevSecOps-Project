@@ -24,10 +24,10 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean install -DskipTests
-        working-directory: ./code/SoloSavingsApp
+        working-directory: C:/SecureSoftwareDevelopment/GitHub-Actions/DevSecOps-Project/code/SoloSavingsApp
 
       - name: Analyze with SonarCloud
-        run: mvn -B verify sonar:sonar -Dsonar.projectKey=javaprojectreachabilitysq -Dsonar.organization=javaprojectreachabilitysq -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN
+        run: mvn -f C:/SecureSoftwareDevelopment/GitHub-Actions/DevSecOps-Project/code/SoloSavingsApp/pom.xml -B verify sonar:sonar -Dsonar.projectKey=javaprojectreachabilitysq -Dsonar.organization=javaprojectreachabilitysq -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
