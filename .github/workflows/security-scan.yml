@@ -41,7 +41,7 @@ jobs:
         
     - name: Package WAR File
       run: mvn package -DskipTests
-      working-directory: ./code/SecureBudgetApp
+      working-directory: ./code/SoloSavingsApp
 
     - name: Execute CodeQL Analysis
       uses: github/codeql-action/analyze@v2
