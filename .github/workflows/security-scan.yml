@@ -48,6 +48,30 @@ jobs:
       with:
         category: "/language:${{matrix.language}}"
 
+  
+  software_anaylsis_sca:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+  
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+        working-directory: ./code/SoloSavingsApp
+  
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        working-directory: ./code/SoloSavingsApp
+  
+      - name: Change to App Directory
+        run: cd ./code/SoloSavingsApp
+  
+      - name: Run Snyk Test
+        run: snyk test
+        working-directory: ./code/SoloSavingsApp
+
+  
+  
 
   security_scan_dast:
     runs-on: ubuntu-latest
