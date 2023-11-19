@@ -19,6 +19,6 @@ jobs:
         uses: snyk/actions/maven@master
         continue-on-error: true
         with:
-          args: "test --file=../pom.xml target"
+          args: "test --file=target"
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
