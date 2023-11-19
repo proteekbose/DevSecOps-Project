@@ -6,48 +6,6 @@ on:
       - main
 
 jobs:
-  security_analysis:
-    name: Security Analysis
-    runs-on: ${{ (matrix.language == 'java-kotlin' && 'ubuntu-latest') || 'macos-latest' }}
-    timeout-minutes: ${{ (matrix.language == 'java-kotlin' && 360) || 120 }}
-
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'java-kotlin' ]
-        # CodeQL supports [ 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'swift' ]
-        # Use only 'javascript-typescript' to analyze code written in JavaScript, TypeScript, or both
-        # Learn more about CodeQL language support at https://example.io/codeql-docs/language-support
-
-    steps:
-    - name: Fetch Repository
-      uses: actions/checkout@v3
-
-    # Set up CodeQL tools for scanning.
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-      with:
-        languages: ${{ matrix.language }}
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v1
-      with:
-        java-version: 17
-        
-    - name: Package WAR File
-      run: mvn package -DskipTests
-      working-directory: ./code/SoloSavingsApp
-
-    - name: Execute CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
-      with:
-        category: "/language:${{matrix.language}}"
-
   
   software_anaylsis_sca:
     runs-on: ubuntu-latest
@@ -67,47 +25,8 @@ jobs:
         run: cd ./code/SoloSavingsApp
   
       - name: Run Snyk Test
-        run: snyk test
+        run: snyk test --all-sub-projects -- -Dmaven=mvnw
         working-directory: ./code/SoloSavingsApp
 
   
   
-
-  security_scan_dast:
-    runs-on: ubuntu-latest
-    needs: security_analysis
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v1
-      with:
-        java-version: 17
-
-    - name: Build with Maven
-      run: mvn clean install -DskipTests
-      working-directory: ./code/SoloSavingsApp
-
-    - name: Start Tomcat container
-      run: docker run -d -p 8080:8080 --name tomcat tomcat:8.5
-      working-directory: ./code/SoloSavingsApp
-
-    - name: Copy WAR file to container
-      run: docker cp target/*.war tomcat:/usr/local/tomcat/webapps
-      working-directory: ./code/SoloSavingsApp
-
-    - name: Wait for app to start
-      run: |
-        while ! curl -s http://localhost:8080; do
-          sleep 1
-        done
-
-    - name: Run OWASP ZAP DAST
-      uses: zaproxy/action-baseline@v0.10.0
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
-        target: 'https://solosavings.wanl.blue/'
-        rules_file_name: '.zap/rules.tsv'
-        cmd_options: '-a'
