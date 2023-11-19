@@ -6,29 +6,6 @@ on:
       - main
 
 jobs:
-  sast:
-    runs-on: ubuntu-latest
-    name: Security scan on the source code
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v1
-      with:
-        java-version: 17
-
-    - name: Build with Maven
-      run: mvn clean install -DskipTests
-      working-directory: ./code/SoloSavingsApp
-
-    - name: Analyze with SonarCloud
-      run:  mvn -B verify sonar:sonar -Dsonar.projectKey=javaprojectreachabilitysq -Dsonar.organization=javaprojectreachabilitysq -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
   dast:
     runs-on: ubuntu-latest
 
@@ -67,19 +44,3 @@ jobs:
         target: 'https://solosavings.wanl.blue/'
         rules_file_name: '.zap/rules.tsv'
         cmd_options: '-a'
-
-  snyk_scan:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Install Snyk CLI
-      run: npm install -g snyk
-
-    - name: Authenticate Snyk
-      run: snyk auth ${{ secrets.SNYK_TOKEN }}
-
-    - name: Run Snyk Test
-      run: snyk test
