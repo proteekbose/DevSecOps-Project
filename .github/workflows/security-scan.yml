@@ -11,6 +11,8 @@ jobs:
     name: Run the SCA scan on the source code
     steps:
       - uses: actions/checkout@master
+        with:
+          fetch-depth: 0
 
       - name: Change to the project directory
         run: cd ./code/SoloSavingsApp 
@@ -19,6 +21,6 @@ jobs:
         uses: snyk/actions/maven@master
         continue-on-error: true
         with:
-          args: "test --file=target"
+          args: "test --file=SoloSavingsApp"
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
