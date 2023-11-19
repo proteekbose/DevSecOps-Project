@@ -21,9 +21,6 @@ jobs:
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
         working-directory: ./code/SoloSavingsApp
   
-      - name: Change to App Directory
-        run: cd ./code/SoloSavingsApp
-  
       - name: Run Snyk Test
         run: snyk test --all-sub-projects -- -Dmaven=mvnw
         working-directory: ./code/SoloSavingsApp
