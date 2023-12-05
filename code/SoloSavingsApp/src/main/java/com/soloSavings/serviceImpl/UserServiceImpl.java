@@ -81,4 +81,12 @@ public class UserServiceImpl implements UserService{
                 user.getPassword_hash(),
                 new ArrayList<>());
     }
+
+
+
+    @Override
+    public String getEmailByUsername(String username) {
+        User user = userRepository.findByUsername(username);
+        return (user != null) ? user.getEmail() : null;
+    }
 }

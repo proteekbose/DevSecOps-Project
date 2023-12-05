@@ -45,9 +45,19 @@ public class HomeController {
         return "forgetPassword";
     }
 
+    @GetMapping("/solosavings/forget-password2")
+    public String forgetPassword2() {
+        return "forgetPassword2";
+    }
+
     @GetMapping("/solosavings/reset-password")
     public String resetPassword() {
         return "resetPassword";
+    }
+
+    @GetMapping("/solosavings/reset-password2")
+    public String resetPassword2() {
+        return "resetPassword2";
     }
 
     @GetMapping("/solosavings/dashboard")

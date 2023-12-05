@@ -6,12 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -25,7 +27,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final AuthenticationConfiguration authenticationConfiguration;
+    private final AuthenticationConfiguration authenticationConfiguration = new AuthenticationConfiguration();
 
 
     @Autowired
@@ -45,9 +47,9 @@ public class SecurityConfig {
                     auth.anyRequest().authenticated();
                 })
                 .csrf((csrf) -> csrf
-                    .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
-                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                    .ignoringRequestMatchers(new AntPathRequestMatcher("/**"))
+                        .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/**"))
                 )
                 .addFilterAfter(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement((session) -> session
@@ -55,7 +57,7 @@ public class SecurityConfig {
                 )
                 .httpBasic(withDefaults())
                 .formLogin(withDefaults());     //better to change to our own login form
-        return http.build();
+         return http.build();
     }
 
     @Bean
@@ -74,6 +76,9 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager() throws Exception{
-        return authenticationConfiguration.getAuthenticationManager();
+        return authentication -> {
+            // Implement any logic you need for the dummy authentication manager
+            return null;
+        };
     }
 }

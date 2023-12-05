@@ -19,4 +19,7 @@ public interface UserService extends UserDetailsService {
     public User getUserByName(String username);
     public User getUserByEmail(String email);
     public void setUserNewPassword(String username, String newPassword);
+
+    // New method to get email by username
+    public String getEmailByUsername(String username);
 }
