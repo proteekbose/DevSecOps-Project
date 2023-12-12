@@ -1,4 +1,4 @@
-# Table of Contents
+# Table of Content
 - [SoloSavings](#SoloSavings)
 - [Achitecture](#Achitecture)
 - [Design Patterns](#Design-Patterns)
